@@ -1,12 +1,11 @@
 "use client";
 
-import { useEffect } from "react";
 import { Inbox } from "@/components/agent/Inbox";
 import { ThreadView } from "@/components/agent/ThreadView";
 import { DarkModeToggle } from "@/components/shared/DarkModeToggle";
 import { ErrorBoundary } from "@/components/shared/ErrorBoundary";
 import { useTransportSync } from "@/lib/useTransportSync";
-import { useChatStore } from "@/lib/store";
+import { useDarkMode } from "@/lib/useDarkMode";
 
 /**
  * Agent dashboard page — shows inbox with all conversations
@@ -15,11 +14,7 @@ import { useChatStore } from "@/lib/store";
  */
 export default function AgentPage() {
   useTransportSync();
-  const darkMode = useChatStore((s) => s.darkMode);
-
-  useEffect(() => {
-    document.documentElement.classList.toggle("dark", darkMode);
-  }, [darkMode]);
+  useDarkMode();
 
   return (
     <ErrorBoundary>

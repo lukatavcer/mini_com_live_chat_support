@@ -1,11 +1,10 @@
 "use client";
 
-import { useEffect } from "react";
 import { ChatWidget } from "@/components/visitor/ChatWidget";
 import { DarkModeToggle } from "@/components/shared/DarkModeToggle";
 import { ErrorBoundary } from "@/components/shared/ErrorBoundary";
 import { useTransportSync } from "@/lib/useTransportSync";
-import { useChatStore } from "@/lib/store";
+import { useDarkMode } from "@/lib/useDarkMode";
 
 /**
  * Visitor page — a mock website with a floating chat widget.
@@ -13,12 +12,7 @@ import { useChatStore } from "@/lib/store";
  */
 export default function VisitorPage() {
   useTransportSync();
-  const darkMode = useChatStore((s) => s.darkMode);
-
-  // Apply dark mode class to document
-  useEffect(() => {
-    document.documentElement.classList.toggle("dark", darkMode);
-  }, [darkMode]);
+  useDarkMode();
 
   return (
     <ErrorBoundary>
