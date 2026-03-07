@@ -44,27 +44,131 @@ src/
     edge-cases.test.ts       # Duplicate messages, missing threads, read receipts
 ```
 
-## Data Flow
+## System Architecture
 
-```
-Visitor Tab                          Agent Tab
-    |                                    |
-    |-- sendMessage() ------------------>|
-    |   (optimistic update)              |
-    |   store.sendMessage()              |
-    |       |                            |
-    |   simulateSend()                   |
-    |       |                            |
-    |   BroadcastChannel.postMessage()   |
-    |       |                            |
-    |       +-----> useTransportSync --->|
-    |               receiveMessage()     |
-    |                                    |
-    |<-- sendMessage() ------------------|
-    |   (same flow, reversed)            |
+```mermaid
+graph TB
+    subgraph "Browser Tab 1"
+        V[Visitor Page /]
+        CW[ChatWidget]
+        V --> CW
+    end
+
+    subgraph "Browser Tab 2"
+        A[Agent Page /agent]
+        IN[Inbox]
+        TV[ThreadView]
+        A --> IN
+        A --> TV
+    end
+
+    subgraph "Shared Layer"
+        ZS[(Zustand Store)]
+        TP[Transport Layer]
+        LS[(localStorage)]
+    end
+
+    CW <--> ZS
+    IN <--> ZS
+    TV <--> ZS
+    ZS <-->|persist middleware| LS
+    ZS <-->|broadcast / subscribe| TP
+    TP <-->|BroadcastChannel API| TP
 ```
 
-## State Management: Zustand
+## Message Lifecycle
+
+```mermaid
+sequenceDiagram
+    participant V as Visitor Tab
+    participant S as Zustand Store
+    participant BC as BroadcastChannel
+    participant A as Agent Tab
+
+    V->>S: sendMessage("Hello!")
+    S->>S: Add message (status: sending)
+    Note over V: Message appears immediately<br/>(optimistic update)
+
+    S->>S: simulateSend() [300-800ms delay]
+
+    alt Success (90%)
+        S->>S: Update status: sent
+        S->>BC: broadcast(NEW_MESSAGE)
+        BC->>A: onmessage event
+        A->>S: receiveMessage()
+        Note over A: Message appears in inbox
+    else Failure (10%)
+        S->>S: Update status: failed
+        Note over V: "Failed - Retry" button shown
+        V->>S: retryMessage()
+        S->>S: Reset status: sending
+        S->>S: simulateSend() again
+    end
+```
+
+## Data Model
+
+```mermaid
+erDiagram
+    THREAD ||--o{ MESSAGE : contains
+    THREAD ||--|{ PARTICIPANT : has
+    THREAD ||--o{ READ_RECEIPT : tracks
+
+    THREAD {
+        string id PK
+        string visitorId
+        string visitorName
+        number createdAt
+        number updatedAt
+    }
+
+    MESSAGE {
+        string id PK
+        string threadId FK
+        string senderId FK
+        enum senderRole "visitor | agent"
+        string content
+        number timestamp
+        enum status "sending | sent | failed"
+        number sequence "for ordering"
+    }
+
+    PARTICIPANT {
+        string id PK
+        enum role "visitor | agent"
+        string name
+        boolean isOnline
+        boolean isTyping
+    }
+
+    READ_RECEIPT {
+        string participantId FK
+        number lastReadTimestamp
+    }
+```
+
+## State Management Decision
+
+```mermaid
+graph LR
+    subgraph "Why Zustand?"
+        Z1[No Provider Nesting]
+        Z2[Selective Re-renders]
+        Z3[Built-in Persistence]
+        Z4[Independent Testing]
+        Z5[Minimal Boilerplate]
+    end
+
+    subgraph "Alternatives Considered"
+        C[React Context]
+        R[Redux Toolkit]
+    end
+
+    C -->|"Provider hell +<br/>full tree re-renders"| Z1
+    C -->|"No built-in<br/>persist middleware"| Z3
+    R -->|"Heavy boilerplate:<br/>slices, reducers, dispatch"| Z5
+    R -->|"Requires Provider<br/>wrapper"| Z1
+```
 
 **Why Zustand over Context:**
 
@@ -81,11 +185,50 @@ Visitor Tab                          Agent Tab
 
 ## Real-time Transport
 
+```mermaid
+graph LR
+    subgraph "Tab A (Visitor)"
+        SA[Store Action] -->|"broadcast()"| BC1[BroadcastChannel]
+    end
+
+    subgraph "Tab B (Agent)"
+        BC2[BroadcastChannel] -->|"subscribe()"| TS[useTransportSync]
+        TS -->|"receiveMessage()<br/>setTyping()<br/>setPresence()"| SB[Store Update]
+    end
+
+    BC1 <-->|"Same-origin<br/>browser-native"| BC2
+```
+
 Uses **BroadcastChannel API** to simulate real-time messaging between tabs:
 
 - Zero-dependency, browser-native solution
 - Works across same-origin tabs/windows
 - No server required for the demo
+
+## Typing Indicator Flow
+
+```mermaid
+stateDiagram-v2
+    [*] --> NotTyping: Input empty
+
+    NotTyping --> Typing: User types text
+    Typing --> Typing: User continues typing
+    Typing --> NotTyping: User clears input
+    Typing --> NotTyping: Message sent
+
+    state Typing {
+        note right of Typing
+            Broadcast isTyping: true
+            (only on state change, not every keystroke)
+        end note
+    }
+
+    state NotTyping {
+        note right of NotTyping
+            Broadcast isTyping: false
+        end note
+    }
+```
 
 Message delivery states: `sending` -> `sent` (with 10% simulated failure -> `failed` with retry)
 
@@ -95,7 +238,7 @@ Message delivery states: `sending` -> `sent` (with 10% simulated failure -> `fai
 - **Out-of-order handling** - Messages sorted by sequence number, not arrival time
 - **Duplicate prevention** - Messages with same ID are rejected
 - **Retry on failure** - Failed messages can be retried with one click
-- **Typing indicators** - Debounced (1s) to avoid flooding
+- **Typing indicators** - Active while input has text, clears on send/empty (only broadcasts on state change)
 - **Read receipts & unread counts** - Tracked per participant per thread
 - **Persistence** - Threads survive page refresh via localStorage
 - **Dark mode** - Toggle persisted across sessions
