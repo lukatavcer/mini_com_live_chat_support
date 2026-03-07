@@ -1,0 +1,17 @@
+@import "tailwindcss";
+
+/* Smooth animation for chat widget opening */
+@keyframes slideInFromBottom {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-in {
+  animation: slideInFromBottom 0.2s ease-out;
+}
