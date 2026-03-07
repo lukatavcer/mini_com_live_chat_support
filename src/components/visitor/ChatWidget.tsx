@@ -1,11 +1,10 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useChatStore } from "@/lib/store";
 import { MessageBubble } from "@/components/shared/MessageBubble";
 import { TypingIndicator } from "@/components/shared/TypingIndicator";
 import { broadcast } from "@/lib/transport";
-import { debounce } from "@/lib/utils";
 import { Thread } from "@/lib/types";
 
 /**
@@ -55,26 +54,17 @@ export function ChatWidget() {
     }
   }, [isOpen, storeThread?.messages.length]);
 
-  // Debounced typing indicator
-  const stopTyping = useCallback(
-    debounce(() => {
-      if (activeThread) {
-        const visitor = activeThread.participants.find((p) => p.role === "visitor");
-        if (visitor) {
-          broadcast({ type: "TYPING", threadId: activeThread.id, participantId: visitor.id, isTyping: false });
-        }
-      }
-    }, 1000),
-    [activeThread?.id]
-  );
+  // Sync typing indicator with whether the input has content.
+  // Typing shows as long as there's text, clears when input is emptied or message is sent.
+  const isTypingRef = useRef(false);
 
-  const handleTyping = () => {
-    if (activeThread) {
-      const visitor = activeThread.participants.find((p) => p.role === "visitor");
-      if (visitor) {
-        broadcast({ type: "TYPING", threadId: activeThread.id, participantId: visitor.id, isTyping: true });
-        stopTyping();
-      }
+  const updateTyping = (hasText: boolean) => {
+    if (!activeThread) return;
+    if (hasText === isTypingRef.current) return; // no change, avoid redundant broadcasts
+    isTypingRef.current = hasText;
+    const visitor = activeThread.participants.find((p) => p.role === "visitor");
+    if (visitor) {
+      broadcast({ type: "TYPING", threadId: activeThread.id, participantId: visitor.id, isTyping: hasText });
     }
   };
 
@@ -89,12 +79,7 @@ export function ChatWidget() {
     if (!text || !activeThread) return;
     sendMessage(activeThread.id, text, "visitor");
     setMessage("");
-
-    // Stop typing indicator immediately after sending
-    const visitor = activeThread.participants.find((p) => p.role === "visitor");
-    if (visitor) {
-      broadcast({ type: "TYPING", threadId: activeThread.id, participantId: visitor.id, isTyping: false });
-    }
+    updateTyping(false);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -230,7 +215,7 @@ export function ChatWidget() {
                     value={message}
                     onChange={(e) => {
                       setMessage(e.target.value);
-                      handleTyping();
+                      updateTyping(e.target.value.trim().length > 0);
                     }}
                     onKeyDown={handleKeyDown}
                     placeholder="Type a message..."

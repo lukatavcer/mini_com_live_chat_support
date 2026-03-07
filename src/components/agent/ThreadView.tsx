@@ -1,11 +1,10 @@
 "use client";
 
-import { useRef, useEffect, useState, useCallback } from "react";
+import { useRef, useEffect, useState } from "react";
 import { useChatStore } from "@/lib/store";
 import { MessageBubble } from "@/components/shared/MessageBubble";
 import { TypingIndicator } from "@/components/shared/TypingIndicator";
 import { broadcast } from "@/lib/transport";
-import { debounce } from "@/lib/utils";
 
 /**
  * Thread detail view for the agent app.
@@ -43,31 +42,27 @@ export function ThreadView() {
     inputRef.current?.focus();
   }, [activeThreadId]);
 
-  // Debounced typing indicator
-  const stopTyping = useCallback(
-    debounce(() => {
-      if (thread) {
-        broadcast({ type: "TYPING", threadId: thread.id, participantId: "agent-1", isTyping: false });
-      }
-    }, 1000),
-    [thread?.id]
-  );
+  // Sync typing indicator with whether the input has content
+  const isTypingRef = useRef(false);
 
-  const handleTyping = () => {
-    if (thread) {
-      broadcast({ type: "TYPING", threadId: thread.id, participantId: "agent-1", isTyping: true });
-      stopTyping();
-    }
+  const updateTyping = (hasText: boolean) => {
+    if (!thread) return;
+    if (hasText === isTypingRef.current) return;
+    isTypingRef.current = hasText;
+    broadcast({ type: "TYPING", threadId: thread.id, participantId: "agent-1", isTyping: hasText });
   };
+
+  // Reset typing ref when switching threads
+  useEffect(() => {
+    isTypingRef.current = false;
+  }, [activeThreadId]);
 
   const handleSend = () => {
     const text = message.trim();
     if (!text || !thread) return;
     sendMessage(thread.id, text, "agent");
     setMessage("");
-
-    // Stop typing indicator
-    broadcast({ type: "TYPING", threadId: thread.id, participantId: "agent-1", isTyping: false });
+    updateTyping(false);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -143,7 +138,7 @@ export function ThreadView() {
             value={message}
             onChange={(e) => {
               setMessage(e.target.value);
-              handleTyping();
+              updateTyping(e.target.value.trim().length > 0);
             }}
             onKeyDown={handleKeyDown}
             placeholder="Type your reply..."
