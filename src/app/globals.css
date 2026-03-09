@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 /* Use class-based dark mode so we can toggle it via JS */
-@custom-variant dark (&:where(.dark, .dark *));
+@variant dark (&:where(.dark, .dark *));
 
 /* Smooth animation for chat widget opening */
 @keyframes slideInFromBottom {
