@@ -216,18 +216,14 @@ stateDiagram-v2
     Typing --> NotTyping: User clears input
     Typing --> NotTyping: Message sent
 
-    state Typing {
-        note right of Typing
-            Broadcast isTyping: true
-            (only on state change, not every keystroke)
-        end note
-    }
+    note right of Typing
+        Broadcast isTyping: true
+        (only on state change, not every keystroke)
+    end note
 
-    state NotTyping {
-        note right of NotTyping
-            Broadcast isTyping: false
-        end note
-    }
+    note right of NotTyping
+        Broadcast isTyping: false
+    end note
 ```
 
 Message delivery states: `sending` -> `sent` (with 10% simulated failure -> `failed` with retry)
