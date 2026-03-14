@@ -71,8 +71,11 @@ export function ConversationItem({ thread, isActive, onClick }: ConversationItem
                 : "No messages yet"}
             </p>
             {unreadCount > 0 && (
-              <span className="ml-2 flex-shrink-0 bg-blue-600 text-white text-xs font-bold
-                              rounded-full w-5 h-5 flex items-center justify-center">
+              <span
+                className="ml-2 flex-shrink-0 bg-blue-600 text-white text-xs font-bold
+                              rounded-full w-5 h-5 flex items-center justify-center"
+                aria-label={`${unreadCount} unread message${unreadCount === 1 ? "" : "s"}`}
+              >
                 {unreadCount > 9 ? "9+" : unreadCount}
               </span>
             )}

@@ -65,8 +65,13 @@ export function Inbox() {
           <h1 className="text-lg font-bold text-gray-900 dark:text-gray-100">
             Inbox
             {totalUnread > 0 && (
-              <span className="ml-2 bg-blue-600 text-white text-xs font-bold
-                              rounded-full px-2 py-0.5">
+              <span
+                className="ml-2 bg-blue-600 text-white text-xs font-bold
+                              rounded-full px-2 py-0.5"
+                role="status"
+                aria-live="polite"
+                aria-label={`${totalUnread} unread message${totalUnread === 1 ? "" : "s"}`}
+              >
                 {totalUnread}
               </span>
             )}

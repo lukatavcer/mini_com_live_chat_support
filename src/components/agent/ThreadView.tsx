@@ -1,12 +1,12 @@
 "use client";
 
-import { useRef, useEffect, useState, useMemo } from "react";
+import { useRef, useEffect, useState, useMemo, useCallback } from "react";
 import { useChatStore } from "@/lib/store";
-import { MessageBubble } from "@/components/shared/MessageBubble";
-import { TypingIndicator } from "@/components/shared/TypingIndicator";
+import { VirtualizedMessageList } from "@/components/shared/VirtualizedMessageList";
 import { broadcast } from "@/lib/transport";
 import { CURRENT_AGENT_ID } from "@/lib/constants";
 import { debounce } from "@/lib/utils";
+import { Message } from "@/lib/types";
 
 /**
  * Thread detail view for the agent app.
@@ -15,7 +15,6 @@ import { debounce } from "@/lib/utils";
  */
 export function ThreadView() {
   const [message, setMessage] = useState("");
-  const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const activeThreadId = useChatStore((s) => s.activeThreadId);
@@ -27,10 +26,7 @@ export function ThreadView() {
   const messages = thread?.messages || [];
   const visitorTyping = thread?.participants.find((p) => p.role === "visitor" && p.isTyping);
 
-  // Auto-scroll to bottom on new messages
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages.length, visitorTyping]);
+  const isOwnMessage = useCallback((msg: Message) => msg.senderRole === "agent", []);
 
   // Debounced read receipt to avoid flooding on rapid message arrival
   const debouncedMarkAsRead = useMemo(
@@ -123,21 +119,12 @@ export function ThreadView() {
       </div>
 
       {/* Messages */}
-      <div
-        className="flex-1 overflow-y-auto p-6"
-        role="list"
-        aria-label="Conversation messages"
-      >
-        {messages.map((msg) => (
-          <MessageBubble
-            key={msg.id}
-            message={msg}
-            isOwn={msg.senderRole === "agent"}
-          />
-        ))}
-        {visitorTyping && <TypingIndicator name={thread.visitorName} />}
-        <div ref={messagesEndRef} />
-      </div>
+      <VirtualizedMessageList
+        messages={messages}
+        isOwnMessage={isOwnMessage}
+        typingName={visitorTyping ? thread.visitorName : null}
+        ariaLabel="Conversation messages"
+      />
 
       {/* Input */}
       <div className="p-4 border-t border-gray-200 dark:border-gray-700">

@@ -12,11 +12,12 @@
  */
 
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { persist, createJSONStorage } from "zustand/middleware";
 import { Thread, Message, MessageStatus, ID, ParticipantRole } from "./types";
 import { broadcast } from "./transport";
 import { generateId } from "./utils";
 import { CURRENT_AGENT_ID, CURRENT_AGENT_NAME } from "./constants";
+import { safeStorage } from "./safeStorage";
 
 /** Global sequence counter — increments per message to maintain ordering */
 let sequenceCounter = 0;
@@ -322,6 +323,7 @@ export const useChatStore = create<ChatState>()(
     }),
     {
       name: "minicom-chat-storage",
+      storage: createJSONStorage(() => safeStorage),
       // Only persist threads and darkMode, not transient UI state
       partialize: (state) => ({
         threads: state.threads,

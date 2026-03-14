@@ -14,6 +14,7 @@
   "description": "",
   "dependencies": {
     "@tailwindcss/postcss": "^4.2.1",
+    "@tanstack/react-virtual": "^3.13.22",
     "@types/node": "^25.3.5",
     "@types/react": "^19.2.14",
     "next": "^16.1.6",

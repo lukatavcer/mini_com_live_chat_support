@@ -1,11 +1,10 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useChatStore } from "@/lib/store";
-import { MessageBubble } from "@/components/shared/MessageBubble";
-import { TypingIndicator } from "@/components/shared/TypingIndicator";
+import { VirtualizedMessageList } from "@/components/shared/VirtualizedMessageList";
 import { broadcast } from "@/lib/transport";
-import { Thread } from "@/lib/types";
+import { Thread, Message } from "@/lib/types";
 
 /**
  * Floating chat widget for the visitor-facing mock website.
@@ -19,7 +18,6 @@ export function ChatWidget() {
   const [currentThread, setCurrentThread] = useState<Thread | null>(null);
   const [hasNewMessage, setHasNewMessage] = useState(false);
 
-  const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const threads = useChatStore((s) => s.threads);
@@ -36,10 +34,7 @@ export function ChatWidget() {
     (p) => p.role === "agent" && p.isTyping
   );
 
-  // Auto-scroll to bottom when new messages arrive
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages.length, agentTyping]);
+  const isOwnMessage = useCallback((msg: Message) => msg.senderRole === "visitor", []);
 
   // Notification badge for new messages when widget is closed
   useEffect(() => {
@@ -105,8 +100,13 @@ export function ChatWidget() {
       >
         {/* Notification badge */}
         {hasNewMessage && !isOpen && (
-          <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full
-                          animate-pulse border-2 border-white" />
+          <span
+            className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full
+                          animate-pulse border-2 border-white"
+            role="status"
+            aria-live="polite"
+            aria-label="New unread messages"
+          />
         )}
         {isOpen ? (
           <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -185,26 +185,12 @@ export function ChatWidget() {
           ) : (
             /* Message list and input */
             <>
-              <div
-                className="flex-1 overflow-y-auto p-4"
-                role="list"
-                aria-label="Chat messages"
-              >
-                {messages.length === 0 && (
-                  <p className="text-center text-sm text-gray-400 dark:text-gray-500 mt-8">
-                    Send a message to get started!
-                  </p>
-                )}
-                {messages.map((msg) => (
-                  <MessageBubble
-                    key={msg.id}
-                    message={msg}
-                    isOwn={msg.senderRole === "visitor"}
-                  />
-                ))}
-                {agentTyping && <TypingIndicator name="Agent" />}
-                <div ref={messagesEndRef} />
-              </div>
+              <VirtualizedMessageList
+                messages={messages}
+                isOwnMessage={isOwnMessage}
+                typingName={agentTyping ? "Agent" : null}
+                ariaLabel="Chat messages"
+              />
 
               {/* Message input */}
               <div className="p-3 border-t border-gray-200 dark:border-gray-700">
