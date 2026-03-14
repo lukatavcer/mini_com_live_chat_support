@@ -17,7 +17,7 @@ export function Avatar({ initials, size = "md", isOnline }: AvatarProps) {
   const { avatar, dot } = sizeClasses[size];
 
   return (
-    <div className="relative flex-shrink-0">
+    <div className="relative flex-shrink-0" aria-hidden="true">
       <div className={`${avatar} bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300
                         rounded-full flex items-center justify-center text-sm font-semibold`}>
         {initials.toUpperCase()}

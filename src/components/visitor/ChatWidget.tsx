@@ -35,7 +35,8 @@ export function ChatWidget() {
         audio.play().catch(() => {});
       } catch {}
     }
-  }, [isOpen, storeThread?.messages.length]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, storeThread?.messages.length, currentThread?.messages.length]);
 
   const handleStartChat = (name: string) => {
     setCurrentThread(createThread(name));

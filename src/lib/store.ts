@@ -156,7 +156,7 @@ export const useChatStore = create<ChatState>()(
 
           // Insert in correct position based on sequence number (handles out-of-order)
           const updatedMessages = [...thread.messages, { ...message, status: "sent" as const }]
-            .sort((a, b) => a.sequence - b.sequence);
+            .sort((a, b) => a.sequence - b.sequence || a.timestamp - b.timestamp);
 
           return {
             threads: state.threads.map((t) =>

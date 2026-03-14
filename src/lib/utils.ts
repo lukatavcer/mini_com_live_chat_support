@@ -18,16 +18,20 @@ export function truncate(text: string, maxLength: number): string {
 }
 
 /**
- * Create a debounced version of a function.
- * Used for typing indicators to avoid flooding the transport with updates.
+ * Create a debounced version of a function with a cancel method.
+ * Call `.cancel()` to clear any pending invocation (e.g. on unmount).
  */
+export type DebouncedFn<T extends (...args: never[]) => void> = T & { cancel: () => void };
+
 export function debounce<T extends (...args: never[]) => void>(
   fn: T,
   ms: number
-): T {
+): DebouncedFn<T> {
   let timer: ReturnType<typeof setTimeout>;
-  return ((...args: Parameters<T>) => {
+  const debounced = ((...args: Parameters<T>) => {
     clearTimeout(timer);
     timer = setTimeout(() => fn(...args), ms);
-  }) as T;
+  }) as DebouncedFn<T>;
+  debounced.cancel = () => clearTimeout(timer);
+  return debounced;
 }

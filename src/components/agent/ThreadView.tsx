@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useCallback } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import { useChatStore } from "@/lib/store";
 import { VirtualizedMessageList } from "@/components/shared/VirtualizedMessageList";
 import { MessageInput } from "@/components/shared/MessageInput";
@@ -27,7 +27,6 @@ export function ThreadView() {
   const activeThreadId = useChatStore((s) => s.activeThreadId);
   const threads = useChatStore((s) => s.threads);
   const sendMessage = useChatStore((s) => s.sendMessage);
-  const markAsRead = useChatStore((s) => s.markAsRead);
 
   const thread = threads.find((t) => t.id === activeThreadId);
   const messages = thread?.messages || [];
@@ -37,18 +36,24 @@ export function ThreadView() {
   const { updateTyping } = useTypingBroadcast(thread?.id ?? null, CURRENT_AGENT_ID);
   const isOwnMessage = useCallback((msg: Message) => msg.senderRole === "agent", []);
 
-  const debouncedMarkAsRead = useMemo(
-    () => debounce((threadId: string, participantId: string) => {
-      markAsRead(threadId, participantId);
-    }, 300),
-    [markAsRead]
-  );
+  // Stable debounced ref — markAsRead from Zustand is stable, but useRef avoids
+  // recreating the debounce on every render
+  const debouncedMarkAsRead = useRef(
+    debounce((threadId: string, participantId: string) => {
+      useChatStore.getState().markAsRead(threadId, participantId);
+    }, 300)
+  ).current;
 
   useEffect(() => {
     if (thread) {
       debouncedMarkAsRead(thread.id, CURRENT_AGENT_ID);
     }
   }, [thread?.id, messages.length, debouncedMarkAsRead]);
+
+  // Cancel pending debounce on unmount
+  useEffect(() => {
+    return () => debouncedMarkAsRead.cancel();
+  }, [debouncedMarkAsRead]);
 
   const handleSend = (text: string) => {
     if (!thread) return;

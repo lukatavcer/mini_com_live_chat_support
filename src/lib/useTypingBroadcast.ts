@@ -1,27 +1,48 @@
 "use client";
 
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useCallback } from "react";
 import { broadcast } from "./transport";
 
 /**
  * Hook that manages typing indicator broadcasting.
  * Tracks whether the user is currently typing and only broadcasts on state changes.
- * Resets when threadId changes (e.g. switching conversations).
+ * Broadcasts isTyping:false on unmount or thread change to prevent stuck indicators.
  */
 export function useTypingBroadcast(threadId: string | null, participantId: string | null) {
   const isTypingRef = useRef(false);
+  const threadIdRef = useRef(threadId);
+  const participantIdRef = useRef(participantId);
 
-  // Reset typing state when thread changes
+  // Keep refs in sync
+  threadIdRef.current = threadId;
+  participantIdRef.current = participantId;
+
+  // Clear typing indicator on thread change or unmount
   useEffect(() => {
-    isTypingRef.current = false;
+    return () => {
+      if (isTypingRef.current && threadIdRef.current && participantIdRef.current) {
+        broadcast({
+          type: "TYPING",
+          threadId: threadIdRef.current,
+          participantId: participantIdRef.current,
+          isTyping: false,
+        });
+        isTypingRef.current = false;
+      }
+    };
   }, [threadId]);
 
-  const updateTyping = (hasText: boolean) => {
-    if (!threadId || !participantId) return;
+  const updateTyping = useCallback((hasText: boolean) => {
+    if (!threadIdRef.current || !participantIdRef.current) return;
     if (hasText === isTypingRef.current) return;
     isTypingRef.current = hasText;
-    broadcast({ type: "TYPING", threadId, participantId, isTyping: hasText });
-  };
+    broadcast({
+      type: "TYPING",
+      threadId: threadIdRef.current,
+      participantId: participantIdRef.current,
+      isTyping: hasText,
+    });
+  }, []);
 
   return { updateTyping };
 }

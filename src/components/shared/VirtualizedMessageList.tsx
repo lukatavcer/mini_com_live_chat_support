@@ -39,7 +39,8 @@ export function VirtualizedMessageList({
       }
     }
     prevCountRef.current = messages.length;
-  }, [messages, isOwnMessage]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [messages.length]);
 
   // Total items = messages + optional typing indicator
   const itemCount = messages.length + (typingName ? 1 : 0);
@@ -64,7 +65,9 @@ export function VirtualizedMessageList({
     if (isAtBottomRef.current) {
       virtualizer.scrollToIndex(itemCount - 1, { align: "end" });
     }
-  }, [itemCount, virtualizer]);
+    // virtualizer is stable from useVirtualizer — only react to itemCount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [itemCount]);
 
   // Scroll to bottom on initial mount
   useEffect(() => {
