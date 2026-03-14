@@ -262,6 +262,12 @@ export const useChatStore = create<ChatState>()(
         threads: state.threads,
         darkMode: state.darkMode,
       }),
+      onRehydrateStorage: () => (state) => {
+        if (!state) return;
+        const maxSeq = state.threads.reduce((max, t) =>
+          t.messages.reduce((m, msg) => Math.max(m, msg.sequence), max), 0);
+        sequenceCounter = maxSeq;
+      },
     }
   )
 );

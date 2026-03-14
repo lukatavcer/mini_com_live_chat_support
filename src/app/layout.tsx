@@ -4,6 +4,9 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "MiniCom - Live Chat Support",
   description: "A live customer support chat prototype built with Next.js, React, and Tailwind CSS.",
+  icons: {
+    icon: "/favicon.ico",
+  },
 };
 
 /**
