@@ -5,6 +5,7 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import { Message } from "@/lib/types";
 import { MessageBubble } from "./MessageBubble";
 import { TypingIndicator } from "./TypingIndicator";
+import { EmptyState } from "./EmptyState";
 
 interface VirtualizedMessageListProps {
   messages: Message[];
@@ -86,9 +87,7 @@ export function VirtualizedMessageList({
         {liveAnnouncement}
       </div>
       {messages.length === 0 && !typingName && (
-        <p className="text-center text-sm text-gray-400 dark:text-gray-500 mt-8">
-          Send a message to get started!
-        </p>
+        <EmptyState title="Send a message to get started!" />
       )}
       {itemCount > 0 && (
         <div

@@ -5,6 +5,7 @@ import { useChatStore } from "@/lib/store";
 import { ConversationItem } from "./ConversationItem";
 import { Thread } from "@/lib/types";
 import { CURRENT_AGENT_ID } from "@/lib/constants";
+import { EmptyState } from "@/components/shared/EmptyState";
 
 type SortMode = "recent" | "unread";
 
@@ -112,10 +113,7 @@ export function Inbox() {
         aria-label="Conversations"
       >
         {sortedThreads.length === 0 ? (
-          <div className="p-8 text-center text-sm text-gray-400 dark:text-gray-500">
-            <p>No conversations yet.</p>
-            <p className="mt-1">Waiting for visitors...</p>
-          </div>
+          <EmptyState title="No conversations yet." subtitle="Waiting for visitors..." />
         ) : (
           sortedThreads.map((thread, index) => (
             <div

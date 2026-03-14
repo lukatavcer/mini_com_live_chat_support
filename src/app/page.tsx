@@ -1,7 +1,7 @@
 "use client";
 
 import { ChatWidget } from "@/components/visitor/ChatWidget";
-import { DarkModeToggle } from "@/components/shared/DarkModeToggle";
+import { AppHeader } from "@/components/shared/AppHeader";
 import { ErrorBoundary } from "@/components/shared/ErrorBoundary";
 import { useTransportSync } from "@/lib/useTransportSync";
 import { useDarkMode } from "@/lib/useDarkMode";
@@ -18,24 +18,7 @@ export default function VisitorPage() {
     <ErrorBoundary>
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50
                       dark:from-gray-900 dark:to-gray-800 transition-colors">
-        {/* Mock website header */}
-        <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
-          <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">M</span>
-              </div>
-              <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">MiniCom</h1>
-            </div>
-            <nav className="flex items-center gap-4">
-              <a href="/agent" className="text-sm text-blue-600 dark:text-blue-400 hover:underline
-                                         focus:outline-none focus:ring-2 focus:ring-blue-500 rounded">
-                Agent Dashboard
-              </a>
-              <DarkModeToggle />
-            </nav>
-          </div>
-        </header>
+        <AppHeader title="MiniCom" navLink={{ href: "/agent", label: "Agent Dashboard" }} />
 
         {/* Mock website content */}
         <main className="max-w-6xl mx-auto px-6 py-16">
@@ -56,7 +39,7 @@ export default function VisitorPage() {
               in another tab to see messages appear in real time.
             </p>
 
-            {/* Feature cards for visual interest */}
+            {/* Feature cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-12">
               {[
                 { title: "Real-time Chat", desc: "Messages sync instantly between visitor and agent via BroadcastChannel." },
@@ -79,7 +62,6 @@ export default function VisitorPage() {
           </div>
         </main>
 
-        {/* Chat widget */}
         <ChatWidget />
       </div>
     </ErrorBoundary>

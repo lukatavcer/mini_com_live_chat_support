@@ -4,6 +4,8 @@ import { Thread } from "@/lib/types";
 import { formatTime, truncate } from "@/lib/utils";
 import { useChatStore } from "@/lib/store";
 import { CURRENT_AGENT_ID } from "@/lib/constants";
+import { Avatar } from "@/components/shared/Avatar";
+import { getParticipant, isRoleTyping } from "@/lib/selectors";
 
 interface ConversationItemProps {
   thread: Thread;
@@ -19,8 +21,8 @@ export function ConversationItem({ thread, isActive, onClick }: ConversationItem
   const getUnreadCount = useChatStore((s) => s.getUnreadCount);
   const lastMessage = thread.messages[thread.messages.length - 1];
   const unreadCount = getUnreadCount(thread.id, CURRENT_AGENT_ID);
-  const visitorOnline = thread.participants.find((p) => p.role === "visitor")?.isOnline;
-  const visitorTyping = thread.participants.find((p) => p.role === "visitor")?.isTyping;
+  const visitor = getParticipant(thread, "visitor");
+  const visitorTyping = isRoleTyping(thread, "visitor");
 
   return (
     <button
@@ -34,19 +36,12 @@ export function ConversationItem({ thread, isActive, onClick }: ConversationItem
       aria-label={`Conversation with ${thread.visitorName}. ${unreadCount} unread messages.`}
     >
       <div className="flex items-start gap-3">
-        {/* Avatar with online indicator */}
-        <div className="relative flex-shrink-0">
-          <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300
-                          rounded-full flex items-center justify-center text-sm font-semibold">
-            {thread.visitorName[0]?.toUpperCase() || "V"}
-          </div>
-          {visitorOnline && (
-            <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full
-                            border-2 border-white dark:border-gray-800" />
-          )}
-        </div>
+        <Avatar
+          initials={thread.visitorName[0] || "V"}
+          size="lg"
+          isOnline={visitor?.isOnline}
+        />
 
-        {/* Content */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between">
             <span className={`text-sm font-medium truncate
