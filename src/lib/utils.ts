@@ -21,12 +21,12 @@ export function truncate(text: string, maxLength: number): string {
  * Create a debounced version of a function.
  * Used for typing indicators to avoid flooding the transport with updates.
  */
-export function debounce<T extends (...args: unknown[]) => void>(
+export function debounce<T extends (...args: never[]) => void>(
   fn: T,
   ms: number
 ): T {
   let timer: ReturnType<typeof setTimeout>;
-  return ((...args: unknown[]) => {
+  return ((...args: Parameters<T>) => {
     clearTimeout(timer);
     timer = setTimeout(() => fn(...args), ms);
   }) as T;

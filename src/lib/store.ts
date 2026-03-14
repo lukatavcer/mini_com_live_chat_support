@@ -16,6 +16,7 @@ import { persist } from "zustand/middleware";
 import { Thread, Message, MessageStatus, ID, ParticipantRole } from "./types";
 import { broadcast } from "./transport";
 import { generateId } from "./utils";
+import { CURRENT_AGENT_ID, CURRENT_AGENT_NAME } from "./constants";
 
 /** Global sequence counter — increments per message to maintain ordering */
 let sequenceCounter = 0;
@@ -51,6 +52,12 @@ interface ChatState {
 
   // --- Incoming thread sync ---
   receiveThread: (thread: Thread) => void;
+
+  // --- Remote event actions (used by useTransportSync, no re-broadcast) ---
+  applyRemoteTyping: (threadId: ID, participantId: ID, isTyping: boolean) => void;
+  applyRemotePresence: (participantId: ID, isOnline: boolean) => void;
+  applyRemoteReadReceipt: (threadId: ID, participantId: ID, timestamp: number) => void;
+  applyRemoteMessageStatus: (threadId: ID, messageId: ID, status: MessageStatus) => void;
 }
 
 export const useChatStore = create<ChatState>()(
@@ -69,11 +76,11 @@ export const useChatStore = create<ChatState>()(
           messages: [],
           participants: [
             { id: visitorId, role: "visitor", name: visitorName, isOnline: true, isTyping: false },
-            { id: "agent-1", role: "agent", name: "Support Agent", isOnline: true, isTyping: false },
+            { id: CURRENT_AGENT_ID, role: "agent", name: CURRENT_AGENT_NAME, isOnline: true, isTyping: false },
           ],
           readReceipts: [
             { participantId: visitorId, lastReadTimestamp: Date.now() },
-            { participantId: "agent-1", lastReadTimestamp: 0 },
+            { participantId: CURRENT_AGENT_ID, lastReadTimestamp: 0 },
           ],
           createdAt: Date.now(),
           updatedAt: Date.now(),
@@ -246,6 +253,64 @@ export const useChatStore = create<ChatState>()(
         return thread.messages.filter(
           (m) => m.timestamp > receipt.lastReadTimestamp && m.senderId !== participantId
         ).length;
+      },
+
+      applyRemoteTyping: (threadId: ID, participantId: ID, isTyping: boolean) => {
+        set((state) => ({
+          threads: state.threads.map((t) =>
+            t.id === threadId
+              ? {
+                  ...t,
+                  participants: t.participants.map((p) =>
+                    p.id === participantId ? { ...p, isTyping } : p
+                  ),
+                }
+              : t
+          ),
+        }));
+      },
+
+      applyRemotePresence: (participantId: ID, isOnline: boolean) => {
+        set((state) => ({
+          threads: state.threads.map((t) => ({
+            ...t,
+            participants: t.participants.map((p) =>
+              p.id === participantId ? { ...p, isOnline } : p
+            ),
+          })),
+        }));
+      },
+
+      applyRemoteReadReceipt: (threadId: ID, participantId: ID, timestamp: number) => {
+        set((state) => ({
+          threads: state.threads.map((t) =>
+            t.id === threadId
+              ? {
+                  ...t,
+                  readReceipts: t.readReceipts.map((r) =>
+                    r.participantId === participantId
+                      ? { ...r, lastReadTimestamp: timestamp }
+                      : r
+                  ),
+                }
+              : t
+          ),
+        }));
+      },
+
+      applyRemoteMessageStatus: (threadId: ID, messageId: ID, status: MessageStatus) => {
+        set((state) => ({
+          threads: state.threads.map((t) =>
+            t.id === threadId
+              ? {
+                  ...t,
+                  messages: t.messages.map((m) =>
+                    m.id === messageId ? { ...m, status } : m
+                  ),
+                }
+              : t
+          ),
+        }));
       },
 
       receiveThread: (thread: Thread) => {

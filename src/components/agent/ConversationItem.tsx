@@ -3,6 +3,7 @@
 import { Thread } from "@/lib/types";
 import { formatTime, truncate } from "@/lib/utils";
 import { useChatStore } from "@/lib/store";
+import { CURRENT_AGENT_ID } from "@/lib/constants";
 
 interface ConversationItemProps {
   thread: Thread;
@@ -17,7 +18,7 @@ interface ConversationItemProps {
 export function ConversationItem({ thread, isActive, onClick }: ConversationItemProps) {
   const getUnreadCount = useChatStore((s) => s.getUnreadCount);
   const lastMessage = thread.messages[thread.messages.length - 1];
-  const unreadCount = getUnreadCount(thread.id, "agent-1");
+  const unreadCount = getUnreadCount(thread.id, CURRENT_AGENT_ID);
   const visitorOnline = thread.participants.find((p) => p.role === "visitor")?.isOnline;
   const visitorTyping = thread.participants.find((p) => p.role === "visitor")?.isTyping;
 

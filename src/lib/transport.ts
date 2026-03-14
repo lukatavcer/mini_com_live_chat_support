@@ -6,6 +6,7 @@
  */
 
 import { TransportEvent } from "./types";
+import { validateTransportEvent } from "./validateTransportEvent";
 
 const CHANNEL_NAME = "minicom-transport";
 
@@ -14,12 +15,19 @@ type EventHandler = (event: TransportEvent) => void;
 let channel: BroadcastChannel | null = null;
 const listeners: Set<EventHandler> = new Set();
 
+/** Dispatch a validated event to all listeners */
+function dispatchToListeners(data: unknown): void {
+  const event = validateTransportEvent(data);
+  if (!event) return;
+  listeners.forEach((handler) => handler(event));
+}
+
 /** Initialize the BroadcastChannel and wire up the message handler */
 function getChannel(): BroadcastChannel {
   if (!channel) {
     channel = new BroadcastChannel(CHANNEL_NAME);
-    channel.onmessage = (event: MessageEvent<TransportEvent>) => {
-      listeners.forEach((handler) => handler(event.data));
+    channel.onmessage = (event: MessageEvent) => {
+      dispatchToListeners(event.data);
     };
   }
   return channel;

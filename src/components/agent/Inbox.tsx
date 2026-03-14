@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useChatStore } from "@/lib/store";
 import { ConversationItem } from "./ConversationItem";
 import { Thread } from "@/lib/types";
+import { CURRENT_AGENT_ID } from "@/lib/constants";
 
 type SortMode = "recent" | "unread";
 
@@ -19,20 +20,30 @@ export function Inbox() {
   const setActiveThread = useChatStore((s) => s.setActiveThread);
   const getUnreadCount = useChatStore((s) => s.getUnreadCount);
 
+  // Memoize unread counts to avoid O(n*m) recalculation on every render
+  const unreadCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const t of threads) {
+      counts.set(t.id, getUnreadCount(t.id, CURRENT_AGENT_ID));
+    }
+    return counts;
+  }, [threads, getUnreadCount]);
+
   // Sort threads based on selected mode
-  const sortedThreads = [...threads].sort((a: Thread, b: Thread) => {
+  const sortedThreads = useMemo(() => [...threads].sort((a: Thread, b: Thread) => {
     if (sortMode === "unread") {
-      const aUnread = getUnreadCount(a.id, "agent-1");
-      const bUnread = getUnreadCount(b.id, "agent-1");
+      const aUnread = unreadCounts.get(a.id) ?? 0;
+      const bUnread = unreadCounts.get(b.id) ?? 0;
       if (bUnread !== aUnread) return bUnread - aUnread;
     }
-    return b.updatedAt - a.updatedAt; // fall back to most recent
-  });
+    return b.updatedAt - a.updatedAt;
+  }), [threads, sortMode, unreadCounts]);
 
-  const totalUnread = threads.reduce(
-    (sum, t) => sum + getUnreadCount(t.id, "agent-1"),
-    0
-  );
+  const totalUnread = useMemo(() => {
+    let sum = 0;
+    unreadCounts.forEach((count) => { sum += count; });
+    return sum;
+  }, [unreadCounts]);
 
   /** Handle keyboard navigation through inbox items */
   const handleKeyDown = (e: React.KeyboardEvent, index: number) => {

@@ -1,10 +1,12 @@
 "use client";
 
-import { useRef, useEffect, useState } from "react";
+import { useRef, useEffect, useState, useMemo } from "react";
 import { useChatStore } from "@/lib/store";
 import { MessageBubble } from "@/components/shared/MessageBubble";
 import { TypingIndicator } from "@/components/shared/TypingIndicator";
 import { broadcast } from "@/lib/transport";
+import { CURRENT_AGENT_ID } from "@/lib/constants";
+import { debounce } from "@/lib/utils";
 
 /**
  * Thread detail view for the agent app.
@@ -30,12 +32,20 @@ export function ThreadView() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages.length, visitorTyping]);
 
+  // Debounced read receipt to avoid flooding on rapid message arrival
+  const debouncedMarkAsRead = useMemo(
+    () => debounce((threadId: string, participantId: string) => {
+      markAsRead(threadId, participantId);
+    }, 300),
+    [markAsRead]
+  );
+
   // Mark messages as read when viewing thread
   useEffect(() => {
     if (thread) {
-      markAsRead(thread.id, "agent-1");
+      debouncedMarkAsRead(thread.id, CURRENT_AGENT_ID);
     }
-  }, [thread?.id, messages.length, markAsRead]);
+  }, [thread?.id, messages.length, debouncedMarkAsRead]);
 
   // Focus input when thread changes
   useEffect(() => {
@@ -49,7 +59,7 @@ export function ThreadView() {
     if (!thread) return;
     if (hasText === isTypingRef.current) return;
     isTypingRef.current = hasText;
-    broadcast({ type: "TYPING", threadId: thread.id, participantId: "agent-1", isTyping: hasText });
+    broadcast({ type: "TYPING", threadId: thread.id, participantId: CURRENT_AGENT_ID, isTyping: hasText });
   };
 
   // Reset typing ref when switching threads
