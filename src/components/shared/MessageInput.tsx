@@ -8,7 +8,7 @@ interface MessageInputProps {
   placeholder?: string;
   buttonVariant?: "text" | "icon";
   ariaLabel?: string;
-  autoFocusOnMount?: boolean;
+  /** Pass a changing value (e.g. threadId) to trigger auto-focus */
   autoFocusTrigger?: unknown;
 }
 
@@ -22,17 +22,14 @@ export function MessageInput({
   placeholder = "Type a message...",
   buttonVariant = "text",
   ariaLabel = "Type a message",
-  autoFocusOnMount = false,
   autoFocusTrigger,
 }: MessageInputProps) {
   const [message, setMessage] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (autoFocusOnMount || autoFocusTrigger !== undefined) {
-      inputRef.current?.focus();
-    }
-  }, [autoFocusTrigger, autoFocusOnMount]);
+    inputRef.current?.focus();
+  }, [autoFocusTrigger]);
 
   const handleSend = () => {
     const text = message.trim();
@@ -66,32 +63,22 @@ export function MessageInput({
                    focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
         aria-label={ariaLabel}
       />
-      {buttonVariant === "icon" ? (
-        <button
-          onClick={handleSend}
-          disabled={!message.trim()}
-          className="px-4 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700
-                     disabled:opacity-50 disabled:cursor-not-allowed transition-colors
-                     focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-          aria-label="Send message"
-        >
+      <button
+        onClick={handleSend}
+        disabled={!message.trim()}
+        className={`${buttonVariant === "icon" ? "px-4" : "px-5 text-sm font-medium"} py-2.5
+                   bg-blue-600 text-white rounded-xl hover:bg-blue-700
+                   disabled:opacity-50 disabled:cursor-not-allowed transition-colors
+                   focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2`}
+        aria-label="Send message"
+      >
+        {buttonVariant === "icon" ? (
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
               d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
           </svg>
-        </button>
-      ) : (
-        <button
-          onClick={handleSend}
-          disabled={!message.trim()}
-          className="px-5 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700
-                     disabled:opacity-50 disabled:cursor-not-allowed transition-colors
-                     focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 text-sm font-medium"
-          aria-label="Send message"
-        >
-          Send
-        </button>
-      )}
+        ) : "Send"}
+      </button>
     </div>
   );
 }

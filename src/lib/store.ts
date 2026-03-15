@@ -22,6 +22,16 @@ import { safeStorage } from "./safeStorage";
 /** Global sequence counter — increments per message to maintain ordering */
 let sequenceCounter = 0;
 
+/** Helper to update a single thread by ID within the threads array */
+function mapThread(threads: Thread[], threadId: ID, updater: (t: Thread) => Thread): Thread[] {
+  return threads.map((t) => (t.id === threadId ? updater(t) : t));
+}
+
+/** Helper to update a participant within a thread */
+function mapParticipant(thread: Thread, participantId: ID, updater: (p: Thread["participants"][0]) => Thread["participants"][0]): Thread {
+  return { ...thread, participants: thread.participants.map((p) => (p.id === participantId ? updater(p) : p)) };
+}
+
 interface ChatState {
   threads: Thread[];
   /** ID of the currently active/selected thread */
@@ -132,16 +142,9 @@ export const useChatStore = create<ChatState>()(
 
       updateMessageStatus: (threadId: ID, messageId: ID, status: MessageStatus) => {
         set((state) => ({
-          threads: state.threads.map((t) =>
-            t.id === threadId
-              ? {
-                  ...t,
-                  messages: t.messages.map((m) =>
-                    m.id === messageId ? { ...m, status } : m
-                  ),
-                }
-              : t
-          ),
+          threads: mapThread(state.threads, threadId, (t) => ({
+            ...t, messages: t.messages.map((m) => m.id === messageId ? { ...m, status } : m),
+          })),
         }));
         broadcast({ type: "MESSAGE_STATUS", messageId, threadId, status });
       },
@@ -201,28 +204,14 @@ export const useChatStore = create<ChatState>()(
 
       setTyping: (threadId: ID, participantId: ID, isTyping: boolean) => {
         set((state) => ({
-          threads: state.threads.map((t) =>
-            t.id === threadId
-              ? {
-                  ...t,
-                  participants: t.participants.map((p) =>
-                    p.id === participantId ? { ...p, isTyping } : p
-                  ),
-                }
-              : t
-          ),
+          threads: mapThread(state.threads, threadId, (t) => mapParticipant(t, participantId, (p) => ({ ...p, isTyping }))),
         }));
         broadcast({ type: "TYPING", threadId, participantId, isTyping });
       },
 
       setPresence: (participantId: ID, isOnline: boolean) => {
         set((state) => ({
-          threads: state.threads.map((t) => ({
-            ...t,
-            participants: t.participants.map((p) =>
-              p.id === participantId ? { ...p, isOnline } : p
-            ),
-          })),
+          threads: state.threads.map((t) => mapParticipant(t, participantId, (p) => ({ ...p, isOnline }))),
         }));
         broadcast({ type: "PRESENCE", participantId, isOnline });
       },
@@ -230,18 +219,11 @@ export const useChatStore = create<ChatState>()(
       markAsRead: (threadId: ID, participantId: ID) => {
         const now = Date.now();
         set((state) => ({
-          threads: state.threads.map((t) =>
-            t.id === threadId
-              ? {
-                  ...t,
-                  readReceipts: t.readReceipts.map((r) =>
-                    r.participantId === participantId
-                      ? { ...r, lastReadTimestamp: now }
-                      : r
-                  ),
-                }
-              : t
-          ),
+          threads: mapThread(state.threads, threadId, (t) => ({
+            ...t, readReceipts: t.readReceipts.map((r) =>
+              r.participantId === participantId ? { ...r, lastReadTimestamp: now } : r
+            ),
+          })),
         }));
         broadcast({ type: "READ_RECEIPT", threadId, participantId, timestamp: now });
       },
@@ -258,59 +240,31 @@ export const useChatStore = create<ChatState>()(
 
       applyRemoteTyping: (threadId: ID, participantId: ID, isTyping: boolean) => {
         set((state) => ({
-          threads: state.threads.map((t) =>
-            t.id === threadId
-              ? {
-                  ...t,
-                  participants: t.participants.map((p) =>
-                    p.id === participantId ? { ...p, isTyping } : p
-                  ),
-                }
-              : t
-          ),
+          threads: mapThread(state.threads, threadId, (t) => mapParticipant(t, participantId, (p) => ({ ...p, isTyping }))),
         }));
       },
 
       applyRemotePresence: (participantId: ID, isOnline: boolean) => {
         set((state) => ({
-          threads: state.threads.map((t) => ({
-            ...t,
-            participants: t.participants.map((p) =>
-              p.id === participantId ? { ...p, isOnline } : p
-            ),
-          })),
+          threads: state.threads.map((t) => mapParticipant(t, participantId, (p) => ({ ...p, isOnline }))),
         }));
       },
 
       applyRemoteReadReceipt: (threadId: ID, participantId: ID, timestamp: number) => {
         set((state) => ({
-          threads: state.threads.map((t) =>
-            t.id === threadId
-              ? {
-                  ...t,
-                  readReceipts: t.readReceipts.map((r) =>
-                    r.participantId === participantId
-                      ? { ...r, lastReadTimestamp: timestamp }
-                      : r
-                  ),
-                }
-              : t
-          ),
+          threads: mapThread(state.threads, threadId, (t) => ({
+            ...t, readReceipts: t.readReceipts.map((r) =>
+              r.participantId === participantId ? { ...r, lastReadTimestamp: timestamp } : r
+            ),
+          })),
         }));
       },
 
       applyRemoteMessageStatus: (threadId: ID, messageId: ID, status: MessageStatus) => {
         set((state) => ({
-          threads: state.threads.map((t) =>
-            t.id === threadId
-              ? {
-                  ...t,
-                  messages: t.messages.map((m) =>
-                    m.id === messageId ? { ...m, status } : m
-                  ),
-                }
-              : t
-          ),
+          threads: mapThread(state.threads, threadId, (t) => ({
+            ...t, messages: t.messages.map((m) => m.id === messageId ? { ...m, status } : m),
+          })),
         }));
       },
 

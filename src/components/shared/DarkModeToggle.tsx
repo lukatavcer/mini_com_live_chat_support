@@ -13,7 +13,6 @@ export function DarkModeToggle() {
       aria-label={darkMode ? "Switch to light mode" : "Switch to dark mode"}
       className="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700
                  transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
-      title={darkMode ? "Light mode" : "Dark mode"}
     >
       {darkMode ? (
         // Sun icon

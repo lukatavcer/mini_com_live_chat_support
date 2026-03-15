@@ -60,22 +60,16 @@ export function VirtualizedMessageList({
     isAtBottomRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < threshold;
   }, []);
 
-  // Auto-scroll to bottom when new messages arrive (if user was at bottom)
+  // Auto-scroll to bottom on new items (if user is near bottom) and on initial mount
+  const isInitialMount = useRef(true);
   useEffect(() => {
-    if (isAtBottomRef.current) {
+    if (itemCount === 0) return;
+    if (isInitialMount.current || isAtBottomRef.current) {
       virtualizer.scrollToIndex(itemCount - 1, { align: "end" });
+      isInitialMount.current = false;
     }
-    // virtualizer is stable from useVirtualizer — only react to itemCount
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [itemCount]);
-
-  // Scroll to bottom on initial mount
-  useEffect(() => {
-    if (itemCount > 0) {
-      virtualizer.scrollToIndex(itemCount - 1, { align: "end" });
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   return (
     <div

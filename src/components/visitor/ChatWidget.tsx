@@ -1,12 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useChatStore } from "@/lib/store";
 import { Avatar } from "@/components/shared/Avatar";
 import { ChatNameForm } from "./ChatNameForm";
 import { ChatConversation } from "./ChatConversation";
 import { isRoleTyping } from "@/lib/selectors";
-import { Thread } from "@/lib/types";
 
 /**
  * Floating chat widget shell for the visitor-facing site.
@@ -15,19 +14,20 @@ import { Thread } from "@/lib/types";
  */
 export function ChatWidget() {
   const [isOpen, setIsOpen] = useState(false);
-  const [currentThread, setCurrentThread] = useState<Thread | null>(null);
+  const [activeThreadId, setActiveThreadId] = useState<string | null>(null);
   const [hasNewMessage, setHasNewMessage] = useState(false);
+  const prevMessageCount = useRef(0);
 
   const threads = useChatStore((s) => s.threads);
   const createThread = useChatStore((s) => s.createThread);
 
-  const storeThread = threads.find((t) => t.id === currentThread?.id);
-  const activeThread = storeThread || currentThread;
+  const activeThread = threads.find((t) => t.id === activeThreadId) ?? null;
   const agentTyping = activeThread ? isRoleTyping(activeThread, "agent") : false;
+  const messageCount = activeThread?.messages.length ?? 0;
 
   // Notification badge for new messages when widget is closed
   useEffect(() => {
-    if (!isOpen && storeThread && storeThread.messages.length > (currentThread?.messages.length || 0)) {
+    if (!isOpen && messageCount > prevMessageCount.current) {
       setHasNewMessage(true);
       try {
         const audio = new Audio("data:audio/wav;base64,UklGRl9vT19teleGhhdGV2ZXI=");
@@ -35,11 +35,11 @@ export function ChatWidget() {
         audio.play().catch(() => {});
       } catch {}
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen, storeThread?.messages.length, currentThread?.messages.length]);
+    prevMessageCount.current = messageCount;
+  }, [isOpen, messageCount]);
 
   const handleStartChat = (name: string) => {
-    setCurrentThread(createThread(name));
+    setActiveThreadId(createThread(name).id);
   };
 
   return (

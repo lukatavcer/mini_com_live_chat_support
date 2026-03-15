@@ -1,5 +1,12 @@
 import { TransportEvent } from "./types";
 
+/** Check that an object has fields matching expected types */
+function hasFields(obj: unknown, schema: Record<string, string>): boolean {
+  if (!obj || typeof obj !== "object") return false;
+  const record = obj as Record<string, unknown>;
+  return Object.entries(schema).every(([key, type]) => typeof record[key] === type);
+}
+
 /** Validates that an unknown value is a well-formed TransportEvent. Returns null for invalid data. */
 export function validateTransportEvent(data: unknown): TransportEvent | null {
   if (!data || typeof data !== "object" || !("type" in data)) return null;
@@ -8,39 +15,29 @@ export function validateTransportEvent(data: unknown): TransportEvent | null {
 
   switch (event.type) {
     case "NEW_MESSAGE":
-      if (!event.message || typeof event.message !== "object") return null;
-      {
-        const msg = event.message as Record<string, unknown>;
-        if (typeof msg.id !== "string" || typeof msg.threadId !== "string" ||
-            typeof msg.content !== "string" || typeof msg.sequence !== "number") return null;
-      }
+      if (!hasFields(event.message, { id: "string", threadId: "string", content: "string", sequence: "number" }))
+        return null;
       return data as TransportEvent;
 
     case "MESSAGE_STATUS":
-      if (typeof event.messageId !== "string" || typeof event.threadId !== "string" ||
+      if (!hasFields(event, { messageId: "string", threadId: "string" }) ||
           !["sending", "sent", "failed"].includes(event.status as string)) return null;
       return data as TransportEvent;
 
     case "NEW_THREAD":
-      if (!event.thread || typeof event.thread !== "object") return null;
-      {
-        const thread = event.thread as Record<string, unknown>;
-        if (typeof thread.id !== "string" || typeof thread.visitorName !== "string") return null;
-      }
+      if (!hasFields(event.thread, { id: "string", visitorName: "string" })) return null;
       return data as TransportEvent;
 
     case "TYPING":
-      if (typeof event.threadId !== "string" || typeof event.participantId !== "string" ||
-          typeof event.isTyping !== "boolean") return null;
+      if (!hasFields(event, { threadId: "string", participantId: "string", isTyping: "boolean" })) return null;
       return data as TransportEvent;
 
     case "PRESENCE":
-      if (typeof event.participantId !== "string" || typeof event.isOnline !== "boolean") return null;
+      if (!hasFields(event, { participantId: "string", isOnline: "boolean" })) return null;
       return data as TransportEvent;
 
     case "READ_RECEIPT":
-      if (typeof event.threadId !== "string" || typeof event.participantId !== "string" ||
-          typeof event.timestamp !== "number") return null;
+      if (!hasFields(event, { threadId: "string", participantId: "string", timestamp: "number" })) return null;
       return data as TransportEvent;
 
     default:
