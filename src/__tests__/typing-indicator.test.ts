@@ -74,7 +74,7 @@ describe("Typing Indicator", () => {
   });
 
   it("applyRemoteReadReceipt updates read receipt timestamp", () => {
-    const { createThread, applyRemoteReadReceipt, getUnreadCount } = useChatStore.getState();
+    const { createThread, applyRemoteReadReceipt } = useChatStore.getState();
     const thread = createThread("Eve");
 
     // Receive a message first

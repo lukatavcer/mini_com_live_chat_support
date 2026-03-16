@@ -25,8 +25,14 @@ describe("validateTransportEvent", () => {
     const valid = {
       type: "NEW_MESSAGE",
       message: {
-        id: "1", threadId: "t1", senderId: "s1", senderRole: "visitor",
-        content: "hi", timestamp: 123, status: "sent", sequence: 1,
+        id: "1",
+        threadId: "t1",
+        senderId: "s1",
+        senderRole: "visitor",
+        content: "hi",
+        timestamp: 123,
+        status: "sent",
+        sequence: 1,
       },
     };
     expect(validateTransportEvent(valid)).toEqual(valid);
@@ -37,7 +43,14 @@ describe("validateTransportEvent", () => {
   it("validates MESSAGE_STATUS events", () => {
     const valid = { type: "MESSAGE_STATUS", messageId: "m1", threadId: "t1", status: "sent" };
     expect(validateTransportEvent(valid)).toEqual(valid);
-    expect(validateTransportEvent({ type: "MESSAGE_STATUS", messageId: "m1", threadId: "t1", status: "invalid" })).toBeNull();
+    expect(
+      validateTransportEvent({
+        type: "MESSAGE_STATUS",
+        messageId: "m1",
+        threadId: "t1",
+        status: "invalid",
+      })
+    ).toBeNull();
   });
 
   it("validates TYPING events", () => {
@@ -59,7 +72,10 @@ describe("validateTransportEvent", () => {
   });
 
   it("validates NEW_THREAD events", () => {
-    const valid = { type: "NEW_THREAD", thread: { id: "t1", visitorName: "Alice" } };
+    const valid = {
+      type: "NEW_THREAD",
+      thread: { id: "t1", visitorName: "Alice", messages: [], participants: [], readReceipts: [] },
+    };
     expect(validateTransportEvent(valid)).toEqual(valid);
     expect(validateTransportEvent({ type: "NEW_THREAD", thread: { id: 123 } })).toBeNull();
   });

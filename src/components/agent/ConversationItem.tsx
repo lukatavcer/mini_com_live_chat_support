@@ -36,16 +36,14 @@ export function ConversationItem({ thread, isActive, onClick }: ConversationItem
       aria-label={`Conversation with ${thread.visitorName}. ${unreadCount} unread messages.`}
     >
       <div className="flex items-start gap-3">
-        <Avatar
-          initials={thread.visitorName[0] || "V"}
-          size="lg"
-          isOnline={visitor?.isOnline}
-        />
+        <Avatar initials={thread.visitorName[0] || "V"} size="lg" isOnline={visitor?.isOnline} />
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between">
-            <span className={`text-sm font-medium truncate
-                            ${unreadCount > 0 ? "text-gray-900 dark:text-white" : "text-gray-700 dark:text-gray-300"}`}>
+            <span
+              className={`text-sm font-medium truncate
+                            ${unreadCount > 0 ? "text-gray-900 dark:text-white" : "text-gray-700 dark:text-gray-300"}`}
+            >
               {thread.visitorName}
             </span>
             {lastMessage && (
@@ -55,21 +53,25 @@ export function ConversationItem({ thread, isActive, onClick }: ConversationItem
             )}
           </div>
           <div className="flex items-center justify-between mt-0.5">
-            <p className={`text-sm truncate
-                          ${unreadCount > 0
-                            ? "text-gray-800 dark:text-gray-200 font-medium"
-                            : "text-gray-500 dark:text-gray-400"}`}>
+            <p
+              className={`text-sm truncate
+                          ${
+                            unreadCount > 0
+                              ? "text-gray-800 dark:text-gray-200 font-medium"
+                              : "text-gray-500 dark:text-gray-400"
+                          }`}
+            >
               {visitorTyping
                 ? "Typing..."
                 : lastMessage
-                ? truncate(lastMessage.content, 40)
-                : "No messages yet"}
+                  ? truncate(lastMessage.content, 40)
+                  : "No messages yet"}
             </p>
             {unreadCount > 0 && (
               <span
                 className="ml-2 flex-shrink-0 bg-blue-600 text-white text-xs font-bold
                               rounded-full w-5 h-5 flex items-center justify-center"
-                aria-label={`${unreadCount} unread message${unreadCount === 1 ? "" : "s"}`}
+                aria-label={`${unreadCount > 9 ? "9+" : unreadCount} unread message${unreadCount === 1 ? "" : "s"}`}
               >
                 {unreadCount > 9 ? "9+" : unreadCount}
               </span>

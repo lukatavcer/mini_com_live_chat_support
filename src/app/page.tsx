@@ -16,8 +16,10 @@ export default function VisitorPage() {
 
   return (
     <ErrorBoundary>
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50
-                      dark:from-gray-900 dark:to-gray-800 transition-colors">
+      <div
+        className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50
+                      dark:from-gray-900 dark:to-gray-800 transition-colors"
+      >
         <AppHeader title="MiniCom" navLink={{ href: "/agent", label: "Agent Dashboard" }} />
 
         {/* Mock website content */}
@@ -27,9 +29,8 @@ export default function VisitorPage() {
               Welcome to our platform
             </h2>
             <p className="text-lg text-gray-600 dark:text-gray-300 mb-8">
-              This is a mock website demonstrating the MiniCom live chat support widget.
-              Click the chat button in the bottom-right corner to start a conversation
-              with our support team.
+              This is a mock website demonstrating the MiniCom live chat support widget. Click the
+              chat button in the bottom-right corner to start a conversation with our support team.
             </p>
             <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
               Open the{" "}
@@ -42,10 +43,22 @@ export default function VisitorPage() {
             {/* Feature cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-12">
               {[
-                { title: "Real-time Chat", desc: "Messages sync instantly between visitor and agent via BroadcastChannel." },
-                { title: "Message States", desc: "See sending, sent, and failed states with retry support." },
-                { title: "Typing Indicators", desc: "Debounced typing indicators show when someone is composing." },
-                { title: "Dark Mode", desc: "Toggle dark mode from the header for a comfortable viewing experience." },
+                {
+                  title: "Real-time Chat",
+                  desc: "Messages sync instantly between visitor and agent via BroadcastChannel.",
+                },
+                {
+                  title: "Message States",
+                  desc: "See sending, sent, and failed states with retry support.",
+                },
+                {
+                  title: "Typing Indicators",
+                  desc: "Debounced typing indicators show when someone is composing.",
+                },
+                {
+                  title: "Dark Mode",
+                  desc: "Toggle dark mode from the header for a comfortable viewing experience.",
+                },
               ].map((feature) => (
                 <div
                   key={feature.title}

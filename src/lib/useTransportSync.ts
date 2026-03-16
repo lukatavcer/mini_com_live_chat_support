@@ -45,10 +45,13 @@ export function useTransportSync() {
           if (existing) clearTimeout(existing);
 
           if (event.isTyping) {
-            typingTimers.current.set(key, setTimeout(() => {
-              applyRemoteTyping(event.threadId, event.participantId, false);
-              typingTimers.current.delete(key);
-            }, TYPING_TIMEOUT_MS));
+            typingTimers.current.set(
+              key,
+              setTimeout(() => {
+                applyRemoteTyping(event.threadId, event.participantId, false);
+                typingTimers.current.delete(key);
+              }, TYPING_TIMEOUT_MS)
+            );
           } else {
             typingTimers.current.delete(key);
           }
@@ -68,5 +71,12 @@ export function useTransportSync() {
       typingTimers.current.forEach((timer) => clearTimeout(timer));
       typingTimers.current.clear();
     };
-  }, [receiveMessage, receiveThread, applyRemoteTyping, applyRemotePresence, applyRemoteReadReceipt, applyRemoteMessageStatus]);
+  }, [
+    receiveMessage,
+    receiveThread,
+    applyRemoteTyping,
+    applyRemotePresence,
+    applyRemoteReadReceipt,
+    applyRemoteMessageStatus,
+  ]);
 }

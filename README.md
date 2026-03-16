@@ -179,6 +179,7 @@ graph LR
 - **Minimal boilerplate** - No reducers, action creators, or dispatch patterns needed
 
 **Trade-offs:**
+
 - Less familiar to developers who only know Context/Redux
 - No built-in devtools (though zustand devtools middleware exists)
 - Store is global — in a larger app, you might want to split into multiple stores

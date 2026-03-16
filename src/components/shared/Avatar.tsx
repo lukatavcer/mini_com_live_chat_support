@@ -18,13 +18,17 @@ export function Avatar({ initials, size = "md", isOnline }: AvatarProps) {
 
   return (
     <div className="relative flex-shrink-0" aria-hidden="true">
-      <div className={`${avatar} bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300
-                        rounded-full flex items-center justify-center text-sm font-semibold`}>
+      <div
+        className={`${avatar} bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300
+                        rounded-full flex items-center justify-center text-sm font-semibold`}
+      >
         {initials.toUpperCase()}
       </div>
       {isOnline && (
-        <span className={`absolute bottom-0 right-0 ${dot} bg-green-500 rounded-full
-                          border-2 border-white dark:border-gray-800`} />
+        <span
+          className={`absolute bottom-0 right-0 ${dot} bg-green-500 rounded-full
+                          border-2 border-white dark:border-gray-800`}
+        />
       )}
     </div>
   );

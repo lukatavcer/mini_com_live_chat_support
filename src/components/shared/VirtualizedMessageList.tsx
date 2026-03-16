@@ -36,10 +36,12 @@ export function VirtualizedMessageList({
       const lastMsg = messages[messages.length - 1];
       if (lastMsg && !isOwnMessage(lastMsg)) {
         setLiveAnnouncement(`New message: ${lastMsg.content}`);
+        const timer = setTimeout(() => setLiveAnnouncement(""), 1000);
+        prevCountRef.current = messages.length;
+        return () => clearTimeout(timer);
       }
     }
     prevCountRef.current = messages.length;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [messages.length]);
 
   // Total items = messages + optional typing indicator
@@ -68,7 +70,6 @@ export function VirtualizedMessageList({
       virtualizer.scrollToIndex(itemCount - 1, { align: "end" });
       isInitialMount.current = false;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [itemCount]);
 
   return (

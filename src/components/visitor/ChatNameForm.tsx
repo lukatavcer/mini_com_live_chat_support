@@ -17,9 +17,7 @@ export function ChatNameForm({ onStartChat }: ChatNameFormProps) {
   return (
     <div className="flex-1 flex flex-col items-center justify-center p-6 gap-4">
       <div className="text-center">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">
-          Welcome!
-        </h3>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">Welcome!</h3>
         <p className="text-sm text-gray-500 dark:text-gray-400">
           Enter your name to start chatting with our support team.
         </p>

@@ -30,10 +30,15 @@ export function ChatWidget() {
     if (!isOpen && messageCount > prevMessageCount.current) {
       setHasNewMessage(true);
       try {
-        const audio = new Audio("data:audio/wav;base64,UklGRl9vT19teleGhhdGV2ZXI=");
+        // Minimal valid WAV: 44-byte header + 2 bytes of silence (1 sample, 8-bit mono, 8kHz)
+        const audio = new Audio(
+          "data:audio/wav;base64,UklGRiYAAABXQVZFZm10IBAAAAABAAEARKwAAESsAAABAAgAZGF0YQIAAAB/"
+        );
         audio.volume = 0.3;
         audio.play().catch(() => {});
-      } catch {}
+      } catch {
+        /* audio playback not supported */
+      }
     }
     prevMessageCount.current = messageCount;
   }, [isOpen, messageCount]);
@@ -67,12 +72,21 @@ export function ChatWidget() {
         )}
         {isOpen ? (
           <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M6 18L18 6M6 6l12 12"
+            />
           </svg>
         ) : (
           <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-              d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+            />
           </svg>
         )}
       </button>
@@ -94,7 +108,9 @@ export function ChatWidget() {
               <h2 className="font-semibold text-sm">MiniCom Support</h2>
               <p className="text-xs text-blue-200">
                 {activeThread
-                  ? agentTyping ? "Agent is typing..." : "Online"
+                  ? agentTyping
+                    ? "Agent is typing..."
+                    : "Online"
                   : "Start a conversation"}
               </p>
             </div>

@@ -55,8 +55,7 @@ describe("Edge Cases", () => {
   });
 
   it("tracks unread count correctly and resets on markAsRead", () => {
-    const { createThread, receiveMessage, getUnreadCount, markAsRead } =
-      useChatStore.getState();
+    const { createThread, receiveMessage, getUnreadCount, markAsRead } = useChatStore.getState();
     const thread = createThread("Visitor");
 
     // Receive 3 messages from the visitor

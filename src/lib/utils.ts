@@ -23,10 +23,7 @@ export function truncate(text: string, maxLength: number): string {
  */
 export type DebouncedFn<T extends (...args: never[]) => void> = T & { cancel: () => void };
 
-export function debounce<T extends (...args: never[]) => void>(
-  fn: T,
-  ms: number
-): DebouncedFn<T> {
+export function debounce<T extends (...args: never[]) => void>(fn: T, ms: number): DebouncedFn<T> {
   let timer: ReturnType<typeof setTimeout>;
   const debounced = ((...args: Parameters<T>) => {
     clearTimeout(timer);

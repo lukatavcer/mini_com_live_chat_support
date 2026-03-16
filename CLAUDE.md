@@ -6,7 +6,10 @@ A live chat support widget built with Next.js 16 (App Router). Two routes: `/` s
 
 - `npm run dev` - Start dev server (Turbopack)
 - `npm run build` - Production build
-- `npm run lint` - ESLint via Next.js
+- `npm run lint` - ESLint (flat config, typescript-eslint + prettier)
+- `npm run lint:fix` - ESLint with auto-fix
+- `npm run format` - Prettier format all files
+- `npm run format:check` - Check Prettier formatting
 - `npm test` - Run Jest tests
 - `npm test -- --watch` - Run tests in watch mode
 - `npm test -- path/to/file` - Run a single test file

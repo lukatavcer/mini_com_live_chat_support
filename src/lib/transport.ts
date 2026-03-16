@@ -29,6 +29,12 @@ function getChannel(): BroadcastChannel {
     channel.onmessage = (event: MessageEvent) => {
       dispatchToListeners(event.data);
     };
+    if (typeof window !== "undefined") {
+      window.addEventListener("beforeunload", () => {
+        channel?.close();
+        channel = null;
+      });
+    }
   }
   return channel;
 }
